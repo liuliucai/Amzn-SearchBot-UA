@@ -31,9 +31,17 @@ export default async function handler(req, res) {
     const dom = new JSDOM(response.data);
     const document = dom.window.document;
 
+    // 超强清理：只保留纯文本，自动过滤 JS/CSS/样式代码
     function cleanText(t) {
       if (!t) return null;
-      return t.replace(/\s+/g, ' ').trim();
+      let text = t.replace(/\s+/g, ' ').trim();
+      
+      // 过滤 JS/CSS 代码
+      if (text.includes('{') || text.includes('}') || text.includes('function') || text.includes('Loading content')) {
+        return null;
+      }
+      
+      return text || null;
     }
 
     const data = {};
@@ -41,7 +49,7 @@ export default async function handler(req, res) {
     // 1. 标题
     data.product_title = cleanText(document.querySelector('#productTitle')?.textContent);
 
-    // 2. 你要求的价格标签
+    // 2. 价格
     data.apex_price = cleanText(document.querySelector('#apex-pricetopay-accessibility-label')?.textContent);
     data.price_label = cleanText(document.querySelector('.a-price .a-offscreen')?.textContent);
 
@@ -52,16 +60,30 @@ export default async function handler(req, res) {
     data.rating = cleanText(document.querySelector('[data-hook="rating-out-of-text"]')?.textContent);
     data.review_count = cleanText(document.querySelector('[data-hook="total-review-count"]')?.textContent);
 
-    // 5. 你要求的 3 个强制 ID
-    data.top_highlight = cleanText(document.querySelector('#topHighlight')?.textContent);
-    data.item_details = cleanText(document.querySelector('#item_details')?.textContent);
-    data.features_and_specs = cleanText(document.querySelector('#features_and_specs')?.textContent);
+    // ==============================
+    // 关键修复：只抓纯文本，不抓代码
+    // ==============================
+    data.top_highlight = cleanText(
+      document.querySelector('#topHighlight')?.textContent ||
+      document.querySelector('#po-highlights-content')?.textContent ||
+      document.querySelector('.po-highlights-content')?.textContent
+    );
 
-    // 6. 产品描述
+    data.item_details = cleanText(
+      document.querySelector('#item_details')?.textContent ||
+      document.querySelector('#productDetails_feature_div')?.textContent
+    );
+
+    data.features_and_specs = cleanText(
+      document.querySelector('#features_and_specs')?.textContent ||
+      document.querySelector('#productDetails_techSpec_section_1')?.textContent
+    );
+
+    // 产品描述
     const listItems = document.querySelectorAll('#feature-bullets li span.a-list-item');
     data.list_items = Array.from(listItems).map(i => cleanText(i.textContent)).filter(Boolean);
 
-    // 7. 分类
+    // 分类
     const breads = document.querySelectorAll('.a-breadcrumb a');
     data.category = Array.from(breads).map(i => cleanText(i.textContent)).filter(Boolean).join(' ');
 
