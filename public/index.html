@@ -22,8 +22,8 @@
 <body>
 
 <div class="card">
-  <h2>Amzn 产品获取1.0</h2>
-  <input id="url" placeholder="https://www.Amzn.com/dp/XXX">
+  <h2>Amazon 产品获取1.1</h2>
+  <input id="url" placeholder="https://www.amazon.com/dp/B0D5H9M72G">
   <button onclick="startCrawl()">开始获取</button>
 </div>
 
@@ -52,30 +52,26 @@
       });
 
       const data = await resp.json();
-
-      if (!data.success) {
-        res.innerHTML = `<span class="red">${data.message}</span>`;
-        return;
-      }
-
       const d = data.data;
+
       let html = `<div class="green">获取成功</div>`;
       html += `<div class="section">伪装IP：${data.fakeIp}</div>`;
       html += `<div class="section">产品链接：${url}</div>`;
 
-      // 有数据才显示，为空直接不输出，不显示任何占位符
       if(d.product_title) html += `<div class="section"><span class="label">产品标题：</span>${d.product_title}</div>`;
+      if(d.apex_price) html += `<div class="section"><span class="label">到手价格：</span>${d.apex_price}</div>`;
       if(d.price_label) html += `<div class="section"><span class="label">价格：</span>${d.price_label}</div>`;
       if(d.availability) html += `<div class="section"><span class="label">库存状态：</span>${d.availability}</div>`;
       if(d.rating) html += `<div class="section"><span class="label">评分：</span>${d.rating}</div>`;
       if(d.review_count) html += `<div class="section"><span class="label">评论数：</span>${d.review_count}</div>`;
 
+      if(d.top_highlight) html += `<div class="section"><span class="label">Top Highlights：</span>${d.top_highlight}</div>`;
+      if(d.item_details) html += `<div class="section"><span class="label">Item Details：</span>${d.item_details}</div>`;
+      if(d.features_and_specs) html += `<div class="section"><span class="label">Features & Specs：</span>${d.features_and_specs}</div>`;
+
       if(d.list_items && d.list_items.length > 0){
-        html += `<div class="section"><span class="label">产品描述：</span>
-          <ul>`;
-        d.list_items.forEach(item => {
-          html += `<li>${item}</li>`;
-        });
+        html += `<div class="section"><span class="label">产品描述：</span><ul>`;
+        d.list_items.forEach(item => { html += `<li>${item}</li>`; });
         html += `</ul></div>`;
       }
 
