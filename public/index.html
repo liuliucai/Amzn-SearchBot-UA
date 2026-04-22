@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amazon Crawler</title>
+  <title>Amzn Crawler</title>
   <style>
     *{box-sizing:border-box;font-family:system-ui}
     body{max-width:800px;margin:50px auto;padding:0 20px;background:#f7f7f7}
@@ -21,13 +21,13 @@
 <body>
 
 <div class="card">
-  <h2>Amazon 产品爬虫</h2>
+  <h2>Amzn 产品信息获取</h2>
   <input id="url" placeholder="https://www.amazon.com/dp/XXX">
-  <button onclick="startCrawl()">开始爬取</button>
+  <button onclick="startCrawl()">开始获取</button>
 </div>
 
 <div class="card">
-  <h3>爬取结果</h3>
+  <h3>获取结果</h3>
   <div id="result"></div>
 </div>
 
@@ -37,11 +37,11 @@
     const res = document.getElementById("result");
 
     if (!url) {
-      res.innerHTML = '<span class="red">请输入 Amazon 产品链接</span>';
+      res.innerHTML = '<span class="red">请输入 Amzn 产品链接</span>';
       return;
     }
 
-    res.innerHTML = "正在爬取，请稍候...";
+    res.innerHTML = "正在获取，请稍候...";
 
     try {
       const resp = await fetch("/api/crawl", {
@@ -60,15 +60,16 @@
       const d = data.data;
 
       res.innerHTML = `
-        <div class="green">爬取成功</div>
+        <div class="green">获取成功</div>
         <div>伪装IP：${data.fakeIp}</div>
+        <div class="section"><span class="label">产品链接：</span>${url}</div>
 
         <div class="section"><span class="label">产品标题：</span>${d.product_title || '-'}</div>
         <div class="section"><span class="label">价格：</span>${d.price_label || '-'}</div>
         <div class="section"><span class="label">库存状态：</span>${d.availability || '-'}</div>
         <div class="section"><span class="label">评分：</span>${d.rating || '-'}</div>
         <div class="section"><span class="label">评论数：</span>${d.review_count || '-'}</div>
-        <div class="section"><span class="label">亮点：</span>${d.top_highlight || '-'}</div>
+        <div class="section"><span class="label">产品简介：</span>${d.top_highlight || '-'}</div>
 
         <div class="section"><span class="label">产品描述：</span>
           <ul>${d.list_items?.map(i => `<li>${i || '-'}</li>`).join('') || '-'}</ul>
