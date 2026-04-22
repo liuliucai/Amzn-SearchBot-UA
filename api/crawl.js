@@ -31,34 +31,27 @@ export default async function handler(req, res) {
     const dom = new JSDOM(response.data);
     const document = dom.window.document;
 
+    // 清理文本
     function cleanText(t) {
       if (!t) return null;
-      let txt = t.replace(/\s+/g, ' ').trim();
-      if (txt.includes('{') || txt.includes('}') || txt.includes('function') || txt.includes('Loading')) return null;
-      return txt || null;
+      return t.replace(/\s+/g, ' ').trim();
     }
 
     const data = {};
 
+    // 只保留 2 个字段
+    // 1. 产品标题
     data.product_title = cleanText(document.querySelector('#productTitle')?.textContent);
-    data.apex_price = cleanText(document.querySelector('#apex-pricetopay-accessibility-label')?.textContent);
-    data.price_label = cleanText(document.querySelector('.a-price .a-offscreen')?.textContent);
-    data.availability = cleanText(document.querySelector('#availability')?.textContent);
-    data.rating = cleanText(document.querySelector('[data-hook="rating-out-of-text"]')?.textContent);
-    data.review_count = cleanText(document.querySelector('[data-hook="total-review-count"]')?.textContent);
 
-    // 真实页面正确选择器（已实测 B0D5H9M72G）
-    data.top_highlight = cleanText((document.querySelector('#po-highlights-content') || document.querySelector('.po-highlights-content'))?.textContent);
-    data.item_details = cleanText((document.querySelector('#productDetails_feature_div') || document.querySelector('#detailBullets_feature_div'))?.textContent);
-    data.features_and_specs = cleanText((document.querySelector('#productDetails_techSpec_section_1') || document.querySelector('#tech-specs'))?.textContent);
-
+    // 2. 产品描述
     const listItems = document.querySelectorAll('#feature-bullets li span.a-list-item');
     data.list_items = Array.from(listItems).map(i => cleanText(i.textContent)).filter(Boolean);
 
-    const breads = document.querySelectorAll('.a-breadcrumb a');
-    data.category = Array.from(breads).map(i => cleanText(i.textContent)).filter(Boolean).join(' ');
-
-    res.json({ success: true, fakeIp, data });
+    res.json({
+      success: true,
+      fakeIp,
+      data
+    });
 
   } catch (error) {
     res.json({ success: false, message: '爬取失败' });
