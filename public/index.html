@@ -6,20 +6,23 @@
   <title>Amazon Crawler</title>
   <style>
     *{box-sizing:border-box;font-family:system-ui}
-    body{max-width:700px;margin:50px auto;padding:0 20px;background:#f7f7f7}
+    body{max-width:800px;margin:50px auto;padding:0 20px;background:#f7f7f7}
     .card{background:white;padding:24px;border-radius:12px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
     input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:8px;font-size:15px}
     button{width:100%;padding:12px;background:#0070f3;color:white;border:none;border-radius:8px;margin-top:12px;font-size:15px;cursor:pointer}
-    .result{background:#f9f9f9;padding:18px;border-radius:8px;margin-top:16px;line-height:1.7}
+    .result{background:#f9f9f9;padding:18px;border-radius:8px;margin-top:16px;line-height:1.8}
+    .section{margin:10px 0}
+    .label{font-weight:bold;color:#333}
     .red{color:#d32f2f}
-    .green{color:#2e7d32}
+    .green{color:#0d814c}
+    ul{padding-left:20px;margin:4px 0}
   </style>
 </head>
 <body>
 
 <div class="card">
   <h2>Amazon 产品爬虫</h2>
-  <input id="url" placeholder="输入 Amazon 产品链接">
+  <input id="url" placeholder="https://www.amazon.com/dp/XXX">
   <button onclick="startCrawl()">开始爬取</button>
 </div>
 
@@ -34,11 +37,11 @@
     const res = document.getElementById("result");
 
     if (!url) {
-      res.innerHTML = '<span class="red">请输入 URL</span>';
+      res.innerHTML = '<span class="red">请输入 Amazon 产品链接</span>';
       return;
     }
 
-    res.innerHTML = "⏳ 正在爬取...";
+    res.innerHTML = "正在爬取，请稍候...";
 
     try {
       const resp = await fetch("/api/crawl", {
@@ -50,18 +53,37 @@
       const data = await resp.json();
 
       if (!data.success) {
-        res.innerHTML = `<span class="red">❌ ${data.message}</span>`;
+        res.innerHTML = `<span class="red">${data.message}</span>`;
         return;
       }
 
+      const d = data.data;
+
       res.innerHTML = `
-✅ 爬取成功
-🌐 伪装IP：${data.fakeIp}
-📦 ASIN：${data.data.asin}
-💰 价格：${data.data.price}
-📝 标题：${data.data.title}
+        <div class="green">爬取成功</div>
+        <div>伪装IP：${data.fakeIp}</div>
+
+        <div class="section"><span class="label">产品标题：</span>${d.product_title || '-'}</div>
+        <div class="section"><span class="label">价格：</span>${d.price_label || '-'}</div>
+        <div class="section"><span class="label">库存状态：</span>${d.availability || '-'}</div>
+        <div class="section"><span class="label">评分：</span>${d.rating || '-'}</div>
+        <div class="section"><span class="label">评论数：</span>${d.review_count || '-'}</div>
+        <div class="section"><span class="label">亮点：</span>${d.top_highlight || '-'}</div>
+
+        <div class="section"><span class="label">产品描述：</span>
+          <ul>${d.list_items?.map(i => `<li>${i || '-'}</li>`).join('') || '-'}</ul>
+        </div>
+
+        <div class="section"><span class="label">产品规格：</span>
+          <ul>${d.specs?.map(s => `<li>${s}</li>`).join('') || '-'}</ul>
+        </div>
+
+        <div class="section"><span class="label">详细信息：</span>
+          <ul>${d.full_product_details?.map(i => `<li>${i}</li>`).join('') || '-'}</ul>
+        </div>
       `;
-    } catch (e) {
+
+    } catch (err) {
       res.innerHTML = '<span class="red">请求失败</span>';
     }
   }
